@@ -156,12 +156,18 @@
       border-radius: 20px;
       cursor: pointer;
       font-size: 14px;
-      margin: 0 5px;
+      margin: 0 5px 5px 5px;
       transition: transform 0.2s ease;
+      display: inline-block;
     }
     
     .share-btn:hover {
       transform: translateY(-2px);
+    }
+    
+    .reset-btn {
+      background: linear-gradient(45deg, #ff6b6b, #ff8a8a) !important;
+      margin-top: 8px;
     }
     
     .volume-control {
@@ -201,9 +207,16 @@
     
     <div class="share-section" id="shareSection">
       <p>Share the love! 💕</p>
-      <button class="share-btn" onclick="shareToWhatsApp()">WhatsApp</button>
-      <button class="share-btn" onclick="shareToTwitter()">Twitter</button>
-      <button class="share-btn" onclick="copyLink()">Copy Link</button>
+      <div>
+        <button class="share-btn" onclick="shareToWhatsApp()">WhatsApp</button>
+        <button class="share-btn" onclick="shareToTwitter()">Twitter</button>
+        <button class="share-btn" onclick="copyLink()">Copy Link</button>
+      </div>
+      <div>
+        <button class="share-btn reset-btn" onclick="resetPage()">
+          Play Again 🔄
+        </button>
+      </div>
     </div>
     
     <p class="footer">Made with 💗 just for you</p>
@@ -259,6 +272,35 @@
     function setMessage(text) { 
       msg.textContent = text;
       saveState();
+    }
+
+    // RESET FUNCTION - This fixes the refresh issue
+    function resetPage() {
+      localStorage.removeItem('lovePageState');
+      playSound(600, 0.2); // Reset sound
+      
+      // Reset all variables
+      noClicks = 0;
+      dodgeArmed = false;
+      dodgePattern = 0;
+      
+      // Reset UI
+      msg.textContent = '';
+      noBtn.disabled = false;
+      noBtn.style.opacity = 1;
+      noBtn.classList.remove('dodging');
+      noBtn.style.position = '';
+      noBtn.style.left = '';
+      noBtn.style.top = '';
+      shareSection.classList.remove('show');
+      
+      // Remove all event listeners from noBtn and re-add the click listener
+      const newNoBtn = noBtn.cloneNode(true);
+      noBtn.parentNode.replaceChild(newNoBtn, noBtn);
+      
+      // Re-assign the reference and add the click listener
+      const resetNoBtn = document.getElementById('noBtn');
+      resetNoBtn.addEventListener('click', handleNoClick);
     }
 
     // Sound effects using Web Audio API
@@ -368,8 +410,8 @@
       if (soundEnabled) playSound(600, 0.2);
     });
 
-    // NO button logic
-    noBtn.addEventListener('click', () => {
+    // NO button logic (extracted to function for reset)
+    function handleNoClick() {
       playSound(300, 0.2, 'sawtooth'); // Sad sound
       noClicks++;
       if (noClicks === 1) {
@@ -383,7 +425,7 @@
       } else {
         dodge();
       }
-    });
+    }
 
     // YES button logic
     yesBtn.addEventListener('click', () => {
@@ -437,6 +479,9 @@
 
     // Initialize
     loadState();
+    
+    // Add event listener to No button
+    noBtn.addEventListener('click', handleNoClick);
   </script>
 </body>
 </html>
