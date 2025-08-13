@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Do you love me?</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg1: #ff9a9e;
+      --bg2: #fad0c4;
+      --accent: #ff4d6d;
+      --text: #2f2f2f;
+      --white: #ffffff;
+      --dark-bg1: #1a1a2e;
+      --dark-bg2: #16213e;
+      --dark-text: #ffffff;
+      --dark-accent: #ff6b9d;
+    }
+    
+    [data-theme="dark"] {
+      --bg1: var(--dark-bg1);
+      --bg2: var(--dark-bg2);
+      --text: var(--dark-text);
+      --accent: var(--dark-accent);
+    }
+    
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .container {
+      width: min(680px, 96vw);
+      padding: clamp(18px, 4vw, 32px);
+      text-align: center;
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(8px);
+      border-radius: 24px;
+      box-shadow: 0 10px 30px rgba(255, 77, 109, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    [data-theme="dark"] .container {
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 10px 30px rgba(255, 107, 157, 0.3);
+    }
+    
+    .theme-toggle {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      font-size: 18px;
+      transition: all 0.3s ease;
+    }
+    
+    .theme-toggle:hover {
+      transform: scale(1.1);
+      background: rgba(255, 255, 255, 0.3);
+    }
+    
+    h1 { font-size: clamp(26px, 4.6vw, 40px); margin: 0 0 12px; letter-spacing: 0.2px; }
+    .tagline { font-size: clamp(14px, 3.4vw, 18px); margin: 0 0 16px; opacity: 0.85; }
+
+    .buttons {
+      display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+      position: relative;
+      min-height: 90px;
+      padding: 8px;
+    }
+    
+    button {
+      appearance: none; border: none; cursor: pointer;
+      padding: 14px 24px; font-weight: 600; font-size: 18px; border-radius: 999px;
+      transition: transform .15s ease, box-shadow .2s ease, background .2s ease, left .18s ease, top .18s ease;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+      touch-action: manipulation;
+    }
+    
+    #yesBtn { background: var(--accent); color: var(--white); }
+    #yesBtn:hover { transform: translateY(-1px) scale(1.02); }
+    #noBtn  { background: #fff; color: #e03152; border: 2px solid #ffd6de; }
+    #noBtn:hover { transform: translateY(-1px); }
+
+    .message { min-height: 28px; margin: 10px 0 0; font-size: clamp(14px, 3.6vw, 18px); font-weight: 500; }
+    .footer { margin-top: 16px; font-size: 12px; opacity: 0.65; }
+
+    .heart {
+      position: fixed; font-size: 18px; pointer-events: none; user-select: none;
+      animation: rise 1.4s ease forwards, fade 1.4s ease forwards;
+    }
+    
+    @keyframes rise { from { transform: translate(-50%, 0) scale(.8); } to { transform: translate(-50%, -120px) scale(1.2); } }
+    @keyframes fade { from { opacity: 1; } to { opacity: 0; } }
+    
+    @keyframes spiral {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      25% { transform: translate(30px, -20px) rotate(90deg); }
+      50% { transform: translate(0, -40px) rotate(180deg); }
+      75% { transform: translate(-30px, -20px) rotate(270deg); }
+      100% { transform: translate(0, 0) rotate(360deg); }
+    }
+    
+    .spiral-dodge {
+      animation: spiral 0.8s ease-in-out;
+    }
+
+    .container::before {
+      content: ""; position: absolute; inset: -120px -80px auto auto; width: 260px; height: 260px; border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, rgba(255,117,143,.35), transparent 60%);
+      filter: blur(10px); animation: drift 10s ease-in-out infinite alternate;
+    }
+    
+    .container::after {
+      content: ""; position: absolute; bottom: -120px; left: -100px; width: 320px; height: 320px; border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, rgba(255,77,109,.25), transparent 60%);
+      filter: blur(12px); animation: drift 12s ease-in-out infinite alternate-reverse;
+    }
+    
+    @keyframes drift { from { transform: translateY(0); } to { transform: translateY(16px); } }
+
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+    .dodging { position: absolute !important; }
+    
+    .share-section {
+      margin-top: 20px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.5s ease;
+    }
+    
+    .share-section.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .share-btn {
+      background: linear-gradient(45deg, #ff6b9d, #ffa8cc);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 0 5px;
+      transition: transform 0.2s ease;
+    }
+    
+    .share-btn:hover {
+      transform: translateY(-2px);
+    }
+    
+    .volume-control {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+    
+    .volume-control:hover {
+      transform: scale(1.1);
+      background: rgba(255, 255, 255, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <main class="container" aria-label="Love question card">
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
+    <button class="volume-control" id="volumeToggle" title="Toggle sound">🔊</button>
+    
+    <h1>Do you love me?</h1>
+    <p class="tagline">Be honest… but remember, love makes everything better ✨</p>
+
+    <div class="buttons" id="btnWrap">
+      <button id="yesBtn" aria-label="Yes, I love you">Yes 💖</button>
+      <button id="noBtn" aria-label="No">No 🙈</button>
+    </div>
+
+    <p id="msg" class="message" role="status" aria-live="polite"></p>
+    
+    <div class="share-section" id="shareSection">
+      <p>Share the love! 💕</p>
+      <button class="share-btn" onclick="shareToWhatsApp()">WhatsApp</button>
+      <button class="share-btn" onclick="shareToTwitter()">Twitter</button>
+      <button class="share-btn" onclick="copyLink()">Copy Link</button>
+    </div>
+    
+    <p class="footer">Made with 💗 just for you</p>
+  </main>
+
+  <script>
+    const yesBtn = document.getElementById('yesBtn');
+    const noBtn  = document.getElementById('noBtn');
+    const msg    = document.getElementById('msg');
+    const wrap   = document.getElementById('btnWrap');
+    const themeToggle = document.getElementById('themeToggle');
+    const volumeToggle = document.getElementById('volumeToggle');
+    const shareSection = document.getElementById('shareSection');
+
+    let noClicks = 0;
+    let dodgeArmed = false;
+    let soundEnabled = true;
+    let dodgePattern = 0; // 0: random, 1: spiral, 2: zigzag
+
+    // Load saved state
+    function loadState() {
+      const saved = localStorage.getItem('lovePageState');
+      if (saved) {
+        const state = JSON.parse(saved);
+        if (state.answered === 'yes') {
+          setMessage('I knew it! I love you too ❤️');
+          noBtn.disabled = true;
+          noBtn.style.opacity = 0.4;
+          shareSection.classList.add('show');
+        }
+        noClicks = state.noClicks || 0;
+        if (noClicks >= 3) armDodge();
+      }
+      
+      // Load theme
+      const theme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+      themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+      
+      // Load sound preference
+      soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+      volumeToggle.textContent = soundEnabled ? '🔊' : '🔇';
+    }
+
+    function saveState() {
+      const state = {
+        noClicks,
+        answered: msg.textContent.includes('I love you too') ? 'yes' : 'no'
+      };
+      localStorage.setItem('lovePageState', JSON.stringify(state));
+    }
+
+    function setMessage(text) { 
+      msg.textContent = text;
+      saveState();
+    }
+
+    // Sound effects using Web Audio API
+    function playSound(frequency, duration, type = 'sine') {
+      if (!soundEnabled) return;
+      
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = frequency;
+        oscillator.type = type;
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + duration);
+      } catch (e) {
+        console.log('Audio not supported');
+      }
+    }
+
+    function heartBurst(x, y, howMany = 24) {
+      for (let i = 0; i < howMany; i++) {
+        const s = document.createElement('span');
+        s.className = 'heart';
+        s.textContent = '❤';
+        const jitterX = (Math.random() * 120 - 60);
+        const jitterY = (Math.random() * 20 - 10);
+        s.style.left = (x + jitterX) + 'px';
+        s.style.top  = (y + jitterY) + 'px';
+        s.style.fontSize = (16 + Math.random() * 16) + 'px';
+        s.style.animationDelay = (Math.random() * 0.3) + 's';
+        document.body.appendChild(s);
+        s.addEventListener('animationend', () => s.remove(), { once: true });
+      }
+    }
+
+    function armDodge() {
+      if (dodgeArmed) return;
+      dodgeArmed = true;
+
+      noBtn.classList.add('dodging');
+      noBtn.style.position = 'absolute';
+      noBtn.style.left = noBtn.offsetLeft + 'px';
+      noBtn.style.top  = noBtn.offsetTop + 'px';
+
+      ['pointerenter', 'pointerdown', 'touchstart', 'mouseover'].forEach(evt => {
+        noBtn.addEventListener(evt, dodge, { passive: true });
+      });
+    }
+
+    function dodge() {
+      playSound(400, 0.1, 'square'); // Dodge sound
+      
+      const wrapRect = wrap.getBoundingClientRect();
+      const btnRect  = noBtn.getBoundingClientRect();
+      const padding = 6;
+      
+      dodgePattern = (dodgePattern + 1) % 3;
+      
+      if (dodgePattern === 1) {
+        // Spiral movement
+        noBtn.classList.add('spiral-dodge');
+        setTimeout(() => noBtn.classList.remove('spiral-dodge'), 800);
+      }
+      
+      const maxX = Math.max(0, wrapRect.width  - btnRect.width  - padding);
+      const maxY = Math.max(0, Math.max(wrapRect.height, 90) - btnRect.height - padding);
+
+      let newX, newY;
+      
+      if (dodgePattern === 2) {
+        // Zigzag pattern
+        newX = noBtn.offsetLeft > maxX/2 ? padding : maxX;
+        newY = padding + Math.random() * maxY;
+      } else {
+        // Random movement
+        newX = padding + Math.random() * maxX;
+        newY = padding + Math.random() * maxY;
+      }
+
+      noBtn.style.left = newX + 'px';
+      noBtn.style.top  = newY + 'px';
+    }
+
+    // Theme toggle
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      themeToggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+      localStorage.setItem('theme', newTheme);
+      playSound(800, 0.1);
+    });
+
+    // Volume toggle
+    volumeToggle.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      volumeToggle.textContent = soundEnabled ? '🔊' : '🔇';
+      localStorage.setItem('soundEnabled', soundEnabled);
+      if (soundEnabled) playSound(600, 0.2);
+    });
+
+    // NO button logic
+    noBtn.addEventListener('click', () => {
+      playSound(300, 0.2, 'sawtooth'); // Sad sound
+      noClicks++;
+      if (noClicks === 1) {
+        setMessage('Please think again 😢');
+      } else if (noClicks === 2) {
+        setMessage('ek or bar soch lo 🥺');
+      } else if (noClicks === 3) {
+        setMessage('baby Man jao na , kitna bhav khaogi 💔');
+        armDodge();
+        dodge();
+      } else {
+        dodge();
+      }
+    });
+
+    // YES button logic
+    yesBtn.addEventListener('click', () => {
+      playSound(523, 0.3); // Happy C note
+      setTimeout(() => playSound(659, 0.3), 100); // E note
+      setTimeout(() => playSound(784, 0.4), 200); // G note
+      
+      const rect = yesBtn.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top  + rect.height / 2;
+
+      setMessage('I knew it! I love you too ❤️');
+      heartBurst(centerX, centerY, 32);
+      shareSection.classList.add('show');
+
+      yesBtn.animate([
+        { transform: 'scale(1)' },
+        { transform: 'scale(1.12)' },
+        { transform: 'scale(1)' }
+      ], { duration: 400, easing: 'ease-in-out' });
+
+      noBtn.disabled = true;
+      noBtn.style.opacity = 0.4;
+    });
+
+    // Share functions
+    function shareToWhatsApp() {
+      const text = "Someone asked me 'Do you love me?' and I said YES! 💖 Check out this cute page:";
+      const url = window.location.href;
+      window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
+    }
+
+    function shareToTwitter() {
+      const text = "I just answered YES to 'Do you love me?' 💖 Such a sweet interactive page!";
+      const url = window.location.href;
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+    }
+
+    async function copyLink() {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.textContent = 'Copied! ✓';
+        setTimeout(() => btn.textContent = originalText, 2000);
+        playSound(800, 0.1);
+      } catch (err) {
+        console.log('Copy failed');
+      }
+    }
+
+    // Initialize
+    loadState();
+  </script>
+</body>
+</html>
