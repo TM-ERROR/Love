@@ -827,833 +827,365 @@
         this.state.dodgePattern++;
       }
 
-      handle<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Do you love me?</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-      --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-      --glass-bg: rgba(255, 255, 255, 0.15);
-      --glass-border: rgba(255, 255, 255, 0.2);
-      --text-primary: #ffffff;
-      --text-secondary: rgba(255, 255, 255, 0.8);
-      --shadow-primary: 0 8px 32px rgba(0, 0, 0, 0.12);
-      --shadow-elevated: 0 20px 60px rgba(0, 0, 0, 0.2);
-      --border-radius: 24px;
-      --animation-spring: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-      --animation-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    [data-theme="dark"] {
-      --primary-gradient: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
-      --glass-bg: rgba(0, 0, 0, 0.3);
-      --glass-border: rgba(255, 255, 255, 0.1);
-      --shadow-primary: 0 8px 32px rgba(0, 0, 0, 0.5);
-    }
-    
-    * { 
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    
-    html, body { height: 100%; }
-    
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      color: var(--text-primary);
-      background: var(--primary-gradient);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .background-effects {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: -1;
-    }
-
-    .floating-shape {
-      position: absolute;
-      border-radius: 50%;
-      background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
-      backdrop-filter: blur(20px);
-      animation: float 20s ease-in-out infinite;
-    }
-
-    .floating-shape:nth-child(1) {
-      width: 300px;
-      height: 300px;
-      top: -150px;
-      left: -150px;
-      animation-delay: 0s;
-    }
-
-    .floating-shape:nth-child(2) {
-      width: 200px;
-      height: 200px;
-      top: 50%;
-      right: -100px;
-      animation-delay: -7s;
-    }
-
-    .floating-shape:nth-child(3) {
-      width: 150px;
-      height: 150px;
-      bottom: -75px;
-      left: 20%;
-      animation-delay: -14s;
-    }
-
-    @keyframes float {
-      0%, 100% { 
-        transform: translate(0, 0) rotate(0deg) scale(1);
-        opacity: 0.5;
+      handleNoClick() {
+        this.playSound(300, 0.3, 'sawtooth');
+        this.state.noClicks++;
+        
+        if (this.state.noClicks <= this.messages.length) {
+          const messageData = this.messages[this.state.noClicks - 1];
+          this.setMessage(messageData.text);
+          
+          // Add screen shake for dramatic effect
+          if (this.state.noClicks >= 3) {
+            this.elements.container.style.animation = 'shake 0.5s ease-in-out';
+            setTimeout(() => {
+              this.elements.container.style.animation = '';
+            }, 500);
+          }
+        }
+        
+        if (this.state.noClicks === 3) {
+          this.armDodge();
+          setTimeout(() => this.dodge(), 500);
+        } else if (this.state.noClicks > 3) {
+          this.dodge();
+        }
+        
+        this.saveState();
       }
-      33% { 
-        transform: translate(30px, -30px) rotate(120deg) scale(1.1);
-        opacity: 0.8;
+
+      handleYesClick() {
+        this.state.answered = true;
+        this.playMelody();
+        
+        const rect = this.elements.yesBtn.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        
+        this.setMessage("I knew it! I love you too! ❤️");
+        this.createHeartBurst(centerX, centerY, 40);
+        this.createConfetti();
+        
+        // Button animation
+        this.elements.yesBtn.style.animation = 'heartbeat 0.6s ease-in-out';
+        
+        // Show success state
+        setTimeout(() => this.showSuccessState(), 800);
+        
+        this.saveState();
       }
-      66% { 
-        transform: translate(-20px, 20px) rotate(240deg) scale(0.9);
-        opacity: 0.6;
+
+      showSuccessState() {
+        this.elements.body.classList.add('success-state');
+        this.elements.shareSection.classList.add('show');
+        this.elements.noBtn.disabled = true;
+        this.elements.noBtn.style.opacity = '0.3';
+        this.elements.noBtn.style.cursor = 'not-allowed';
       }
-    }
 
-    .particle-system {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    .particle {
-      position: absolute;
-      width: 4px;
-      height: 4px;
-      background: rgba(255, 255, 255, 0.6);
-      border-radius: 50%;
-      animation: particleFloat 15s linear infinite;
-    }
-
-    @keyframes particleFloat {
-      0% {
-        transform: translateY(100vh) translateX(0) scale(0);
-        opacity: 0;
-      }
-      10% {
-        opacity: 1;
-        transform: translateY(90vh) translateX(10px) scale(1);
-      }
-      90% {
-        opacity: 1;
-        transform: translateY(10vh) translateX(-10px) scale(1);
-      }
-      100% {
-        transform: translateY(0) translateX(0) scale(0);
-        opacity: 0;
-      }
-    }
-
-    .container {
-      width: min(500px, 90vw);
-      padding: clamp(24px, 5vw, 48px);
-      text-align: center;
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      border-radius: var(--border-radius);
-      box-shadow: var(--shadow-elevated);
-      position: relative;
-      overflow: hidden;
-      transform: translateY(0);
-      transition: all 0.6s var(--animation-smooth);
-    }
-    
-    .container::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, 
-        rgba(255, 255, 255, 0.1) 0%, 
-        transparent 50%, 
-        rgba(255, 255, 255, 0.05) 100%);
-      pointer-events: none;
-    }
-    
-    .controls {
-      position: absolute;
-      top: 20px;
-      display: flex;
-      gap: 12px;
-      z-index: 10;
-    }
-    
-    .controls.left { left: 20px; }
-    .controls.right { right: 20px; }
-    
-    .control-btn {
-      width: 44px;
-      height: 44px;
-      border: none;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(10px);
-      color: var(--text-primary);
-      font-size: 20px;
-      cursor: pointer;
-      transition: all 0.3s var(--animation-smooth);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .control-btn:hover {
-      transform: scale(1.1) translateY(-2px);
-      background: rgba(255, 255, 255, 0.3);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-    }
-    
-    .control-btn:active {
-      transform: scale(0.95);
-    }
-
-    .title-section {
-      margin-bottom: 40px;
-      position: relative;
-    }
-    
-    h1 { 
-      font-size: clamp(28px, 6vw, 48px);
-      font-weight: 800;
-      margin-bottom: 16px;
-      background: linear-gradient(135deg, #ffffff, #f0f0f0);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      line-height: 1.2;
-      position: relative;
-    }
-
-    .title-decoration {
-      position: absolute;
-      top: -10px;
-      right: -10px;
-      font-size: 24px;
-      animation: pulse 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { 
-        transform: scale(1) rotate(0deg);
-        opacity: 0.8;
-      }
-      50% { 
-        transform: scale(1.2) rotate(180deg);
-        opacity: 1;
-      }
-    }
-    
-    .tagline { 
-      font-size: clamp(14px, 3.5vw, 18px);
-      color: var(--text-secondary);
-      font-weight: 400;
-      line-height: 1.5;
-    }
-
-    .buttons-container {
-      position: relative;
-      min-height: 120px;
-      margin: 40px 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-      flex-wrap: wrap;
-    }
-    
-    .btn {
-      position: relative;
-      padding: 16px 32px;
-      border: none;
-      border-radius: 50px;
-      font-family: inherit;
-      font-weight: 600;
-      font-size: 18px;
-      cursor: pointer;
-      transition: all 0.3s var(--animation-spring);
-      transform-origin: center;
-      overflow: hidden;
-    }
-
-    .btn::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      padding: 2px;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1));
-      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      mask-composite: exclude;
-    }
-    
-    #yesBtn { 
-      background: var(--success-gradient);
-      color: white;
-      box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
-    }
-    
-    #yesBtn:hover { 
-      transform: translateY(-3px) scale(1.05);
-      box-shadow: 0 15px 40px rgba(79, 172, 254, 0.6);
-    }
-    
-    #noBtn  { 
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text-primary);
-      border: 2px solid rgba(255, 255, 255, 0.2);
-      backdrop-filter: blur(10px);
-    }
-    
-    #noBtn:hover { 
-      transform: translateY(-2px);
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    #noBtn.dodging {
-      position: absolute !important;
-      z-index: 5;
-      transition: all 0.4s var(--animation-spring) !important;
-    }
-
-    .message-area {
-      min-height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 20px 0;
-    }
-
-    .message { 
-      font-size: clamp(16px, 4vw, 20px);
-      font-weight: 500;
-      color: var(--text-primary);
-      opacity: 0;
-      transform: translateY(20px);
-      transition: all 0.5s var(--animation-smooth);
-      text-align: center;
-      line-height: 1.4;
-    }
-
-    .message.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-    
-    .share-section {
-      margin-top: 32px;
-      opacity: 0;
-      transform: translateY(30px);
-      transition: all 0.6s var(--animation-smooth);
-    }
-    
-    .share-section.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .share-title {
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 16px;
-      color: var(--text-primary);
-    }
-
-    .share-buttons {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    
-    .share-btn {
-      padding: 12px 24px;
-      border: none;
-      border-radius: 25px;
-      font-family: inherit;
-      font-weight: 500;
-      font-size: 14px;
-      cursor: pointer;
-      transition: all 0.3s var(--animation-smooth);
-      background: rgba(255, 255, 255, 0.15);
-      color: var(--text-primary);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    
-    .share-btn:hover {
-      transform: translateY(-2px);
-      background: rgba(255, 255, 255, 0.25);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    }
-    
-    .footer { 
-      margin-top: 32px;
-      font-size: 14px;
-      color: var(--text-secondary);
-      font-weight: 300;
-    }
-
-    .heart {
-      position: fixed;
-      font-size: 20px;
-      pointer-events: none;
-      user-select: none;
-      z-index: 1000;
-      animation: heartRise 2s ease-out forwards;
-    }
-    
-    @keyframes heartRise {
-      0% { 
-        opacity: 1;
-        transform: translate(-50%, 0) scale(0.5) rotate(0deg);
-      }
-      50% {
-        opacity: 1;
-        transform: translate(-50%, -60px) scale(1.2) rotate(180deg);
-      }
-      100% { 
-        opacity: 0;
-        transform: translate(-50%, -120px) scale(0.8) rotate(360deg);
-      }
-    }
-
-    .confetti {
-      position: fixed;
-      width: 10px;
-      height: 10px;
-      pointer-events: none;
-      z-index: 1000;
-    }
-
-    @keyframes confettiFall {
-      0% {
-        opacity: 1;
-        transform: translateY(-100vh) rotateZ(0deg);
-      }
-      100% {
-        opacity: 0;
-        transform: translateY(100vh) rotateZ(720deg);
-      }
-    }
-
-    .success-state .container {
-      background: linear-gradient(135deg, 
-        rgba(79, 172, 254, 0.2) 0%, 
-        rgba(0, 242, 254, 0.1) 100%);
-      border-color: rgba(79, 172, 254, 0.3);
-      box-shadow: 0 25px 80px rgba(79, 172, 254, 0.3);
-    }
-
-    @keyframes spiral {
-      0% { transform: translate(0, 0) rotate(0deg) scale(1); }
-      25% { transform: translate(40px, -30px) rotate(90deg) scale(1.1); }
-      50% { transform: translate(0, -60px) rotate(180deg) scale(0.9); }
-      75% { transform: translate(-40px, -30px) rotate(270deg) scale(1.1); }
-      100% { transform: translate(0, 0) rotate(360deg) scale(1); }
-    }
-    
-    .spiral-dodge {
-      animation: spiral 1s var(--animation-spring) !important;
-    }
-
-    @keyframes zigzag {
-      0% { transform: translateX(0) translateY(0); }
-      25% { transform: translateX(50px) translateY(-20px); }
-      50% { transform: translateX(-30px) translateY(-40px); }
-      75% { transform: translateX(40px) translateY(-20px); }
-      100% { transform: translateX(0) translateY(0); }
-    }
-
-    .zigzag-dodge {
-      animation: zigzag 0.8s var(--animation-spring) !important;
-    }
-
-    @keyframes teleport {
-      0% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0; transform: scale(0); }
-      100% { opacity: 1; transform: scale(1); }
-    }
-
-    .teleport-dodge {
-      animation: teleport 0.6s var(--animation-spring) !important;
-    }
-
-    @media (max-width: 768px) {
-      .container {
-        width: 95vw;
-        padding: 20px;
-      }
-      
-      .buttons-container {
-        gap: 16px;
-        min-height: 100px;
-      }
-      
-      .btn {
-        padding: 14px 28px;
-        font-size: 16px;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-      }
-      
-      .floating-shape, .particle {
-        display: none;
-      }
-    }
-
-    @media (hover: none) {
-      .btn:hover, .control-btn:hover, .share-btn:hover {
-        transform: none;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="background-effects">
-    <div class="floating-shape"></div>
-    <div class="floating-shape"></div>
-    <div class="floating-shape"></div>
-  </div>
-
-  <div class="particle-system" id="particleSystem"></div>
-
-  <main class="container" aria-label="Love question interactive card">
-    <div class="controls left">
-      <button class="control-btn" id="volumeToggle" title="Toggle sound effects" aria-label="Toggle sound">🔊</button>
-      <button class="control-btn" id="themeToggle" title="Switch theme" aria-label="Toggle theme">🌙</button>
-    </div>
-    
-    <div class="controls right">
-      <button class="control-btn" id="resetBtn" title="Reset interaction" aria-label="Reset">🔄</button>
-    </div>
-    
-    <div class="title-section">
-      <h1>Do you love me?<span class="title-decoration">💕</span></h1>
-      <p class="tagline">Your heart knows the answer... let it speak ✨</p>
-    </div>
-
-    <div class="buttons-container" id="buttonsContainer">
-      <button id="yesBtn" class="btn" aria-label="Yes, I love you">Yes 💖</button>
-      <button id="noBtn" class="btn" aria-label="No">No 🙈</button>
-    </div>
-
-    <div class="message-area">
-      <p id="message" class="message" role="status" aria-live="polite"></p>
-    </div>
-    
-    <div class="share-section" id="shareSection">
-      <p class="share-title">Share the love! 💕</p>
-      <div class="share-buttons">
-        <button class="share-btn" data-platform="whatsapp">📱 WhatsApp</button>
-        <button class="share-btn" data-platform="twitter">🐦 Twitter</button>
-        <button class="share-btn" data-platform="copy">📋 Copy Link</button>
-      </div>
-    </div>
-    
-    <p class="footer">Made with 💗 and modern web magic</p>
-  </main>
-
-  <script>
-    class LovePageEngine {
-      constructor() {
+      reset() {
         this.state = {
+          ...this.state,
           noClicks: 0,
           answered: false,
-          soundEnabled: true,
-          theme: 'light',
           dodgeArmed: false,
-          dodgePattern: 0,
-          audioContext: null
+          dodgePattern: 0
         };
         
-        this.elements = {
-          yesBtn: document.getElementById('yesBtn'),
-          noBtn: document.getElementById('noBtn'),
-          message: document.getElementById('message'),
-          container: document.querySelector('.container'),
-          buttonsContainer: document.getElementById('buttonsContainer'),
-          themeToggle: document.getElementById('themeToggle'),
-          volumeToggle: document.getElementById('volumeToggle'),
-          resetBtn: document.getElementById('resetBtn'),
-          shareSection: document.getElementById('shareSection'),
-          body: document.body
-        };
-
-        this.messages = [
-          { text: "Please think again... 😢", emoji: "💔" },
-          { text: "Arey yaar, ek aur baar soch lo 🥺", emoji: "🥺" },
-          { text: "Baby, man jao na... kitna bhav khaogi? 💔", emoji: "😭" },
-          { text: "Ab toh pakka dodge karunga! 😏", emoji: "🏃‍♂️" },
-          { text: "Catch me if you can! 🎯", emoji: "🎪" },
-          { text: "Still trying? I respect the dedication! 💪", emoji: "🎭" }
-        ];
-
-        this.dodgeAnimations = ['spiral', 'zigzag', 'teleport'];
+        this.elements.body.classList.remove('success-state');
+        this.elements.shareSection.classList.remove('show');
+        this.elements.noBtn.disabled = false;
+        this.elements.noBtn.style.opacity = '1';
+        this.elements.noBtn.style.cursor = 'pointer';
+        this.elements.noBtn.style.position = 'relative';
+        this.elements.noBtn.style.left = 'auto';
+        this.elements.noBtn.style.top = 'auto';
+        this.elements.noBtn.classList.remove('dodging');
         
-        this.init();
-      }
-
-      init() {
-        this.loadState();
-        this.setupEventListeners();
-        this.startParticleSystem();
-        this.preloadAudio();
-        
-        // Initialize with smooth entrance
-        setTimeout(() => {
-          this.elements.container.style.transform = 'translateY(0)';
-        }, 100);
-      }
-
-      loadState() {
-        try {
-          const saved = localStorage?.getItem?.('lovePageState');
-          if (saved) {
-            const data = JSON.parse(saved);
-            this.state = { ...this.state, ...data };
-          }
-        } catch (e) {
-          console.log('State loading failed, using defaults');
-        }
-
-        // Apply loaded state
-        this.setTheme(this.state.theme);
-        this.setSoundEnabled(this.state.soundEnabled);
-        
-        if (this.state.answered) {
-          this.showSuccessState();
-        } else if (this.state.noClicks >= 3) {
-          this.armDodge();
-        }
-      }
-
-      saveState() {
-        try {
-          localStorage?.setItem?.('lovePageState', JSON.stringify(this.state));
-        } catch (e) {
-          console.log('State saving failed');
-        }
-      }
-
-      preloadAudio() {
-        if (this.state.soundEnabled) {
-          try {
-            this.state.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-          } catch (e) {
-            console.log('Audio not supported');
-          }
-        }
-      }
-
-      playSound(frequency, duration = 0.2, type = 'sine', volume = 0.3) {
-        if (!this.state.soundEnabled || !this.state.audioContext) return;
-        
-        try {
-          const oscillator = this.state.audioContext.createOscillator();
-          const gainNode = this.state.audioContext.createGain();
-          
-          oscillator.connect(gainNode);
-          gainNode.connect(this.state.audioContext.destination);
-          
-          oscillator.frequency.setValueAtTime(frequency, this.state.audioContext.currentTime);
-          oscillator.type = type;
-          
-          gainNode.gain.setValueAtTime(volume, this.state.audioContext.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, this.state.audioContext.currentTime + duration);
-          
-          oscillator.start(this.state.audioContext.currentTime);
-          oscillator.stop(this.state.audioContext.currentTime + duration);
-        } catch (e) {
-          console.log('Audio playback failed');
-        }
-      }
-
-      playMelody() {
-        const notes = [
-          { freq: 523, time: 0 },    // C
-          { freq: 659, time: 150 },  // E
-          { freq: 784, time: 300 },  // G
-          { freq: 1047, time: 450 }  // High C
-        ];
-        
-        notes.forEach(note => {
-          setTimeout(() => this.playSound(note.freq, 0.4), note.time);
-        });
-      }
-
-      setMessage(text, showEmoji = true) {
-        const msgEl = this.elements.message;
-        msgEl.classList.remove('show');
-        
-        setTimeout(() => {
-          msgEl.textContent = text;
-          msgEl.classList.add('show');
-        }, 150);
-        
-        this.saveState();
-      }
-
-      setTheme(theme) {
-        this.state.theme = theme;
-        document.documentElement.setAttribute('data-theme', theme);
-        this.elements.themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
-        this.saveState();
-      }
-
-      setSoundEnabled(enabled) {
-        this.state.soundEnabled = enabled;
-        this.elements.volumeToggle.textContent = enabled ? '🔊' : '🔇';
-        
-        if (enabled && !this.state.audioContext) {
-          this.preloadAudio();
-        }
-        
-        this.saveState();
-      }
-
-      createHeartBurst(x, y, count = 30) {
-        for (let i = 0; i < count; i++) {
-          const heart = document.createElement('div');
-          heart.className = 'heart';
-          heart.textContent = ['❤️', '💖', '💕', '💗', '💝'][Math.floor(Math.random() * 5)];
-          
-          const angle = (i / count) * 360;
-          const velocity = 50 + Math.random() * 50;
-          const offsetX = Math.cos(angle * Math.PI / 180) * (Math.random() * 60);
-          const offsetY = Math.sin(angle * Math.PI / 180) * (Math.random() * 60);
-          
-          heart.style.left = (x + offsetX) + 'px';
-          heart.style.top = (y + offsetY) + 'px';
-          heart.style.fontSize = (16 + Math.random() * 12) + 'px';
-          heart.style.animationDelay = (Math.random() * 0.5) + 's';
-          
-          document.body.appendChild(heart);
-          
-          setTimeout(() => {
-            if (heart.parentNode) {
-              heart.parentNode.removeChild(heart);
-            }
-          }, 2000);
-        }
-      }
-
-      createConfetti() {
-        const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b', '#eb4d4b', '#6ab04c'];
-        
-        for (let i = 0; i < 50; i++) {
-          const confetti = document.createElement('div');
-          confetti.className = 'confetti';
-          confetti.style.left = Math.random() * 100 + 'vw';
-          confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-          confetti.style.animationDelay = Math.random() * 3 + 's';
-          confetti.style.animationDuration = (3 + Math.random() * 2) + 's';
-          confetti.style.animation = 'confettiFall linear forwards';
-          
-          document.body.appendChild(confetti);
-          
-          setTimeout(() => {
-            if (confetti.parentNode) {
-              confetti.parentNode.removeChild(confetti);
-            }
-          }, 5000);
-        }
-      }
-
-      armDodge() {
-        if (this.state.dodgeArmed) return;
-        
-        this.state.dodgeArmed = true;
-        this.elements.noBtn.classList.add('dodging');
-        
-        const rect = this.elements.noBtn.getBoundingClientRect();
-        const containerRect = this.elements.buttonsContainer.getBoundingClientRect();
-        
-        this.elements.noBtn.style.position = 'absolute';
-        this.elements.noBtn.style.left = (rect.left - containerRect.left) + 'px';
-        this.elements.noBtn.style.top = (rect.top - containerRect.top) + 'px';
-        
-        ['mouseenter', 'touchstart', 'focus'].forEach(event => {
-          this.elements.noBtn.addEventListener(event, () => this.dodge(), { passive: true });
-        });
-        
-        this.saveState();
-      }
-
-      dodge() {
-        this.playSound(400 + Math.random() * 200, 0.1, 'square');
-        
-        const containerRect = this.elements.buttonsContainer.getBoundingClientRect();
-        const btnRect = this.elements.noBtn.getBoundingClientRect();
-        const padding = 20;
-        
-        const maxX = Math.max(0, containerRect.width - btnRect.width - padding);
-        const maxY = Math.max(0, containerRect.height - btnRect.height - padding);
-        
-        // Advanced dodge patterns
-        let newX, newY;
-        const currentPattern = this.state.dodgePattern % this.dodgeAnimations.length;
-        
-        // Remove previous animation classes
+        // Remove animation classes
         this.dodgeAnimations.forEach(anim => {
           this.elements.noBtn.classList.remove(anim + '-dodge');
         });
         
-        switch (currentPattern) {
-          case 0: // Spiral
-            this.elements.noBtn.classList.add('spiral-dodge');
-            break;
-          case 1: // Zigzag
-            this.elements.noBtn.classList.add('zigzag-dodge');
-            break;
-          case 2: // Teleport
-            this.elements.noBtn.classList.add('teleport-dodge');
-            setTimeout(() => {
-              newX = padding + Math.random() * maxX;
-              newY = padding + Math.random() * maxY;
-              this.elements.noBtn.style.left = newX + 'px';
-              this.elements.noBtn.style.top = newY + 'px';
-            }, 300);
-            break;
-        }
+        this.elements.message.classList.remove('show');
+        this.elements.yesBtn.style.animation = '';
         
-        if (currentPattern !== 2) { // Not teleport
-          newX = padding + Math.random() * maxX;
-          newY = padding + Math.random() * maxY;
-          
-          setTimeout(() => {
-            this.elements.noBtn.style.left = newX + 'px';
-            this.elements.noBtn.style.top = newY + 'px';
-          }, 100);
-        }
-        
-        this.state.dodgePattern++;
+        this.playSound(600, 0.2);
+        this.saveState();
       }
 
-      handle
+      shareToWhatsApp() {
+        const text = "Someone asked me 'Do you love me?' and I said YES! 💖 Check out this amazing interactive page:";
+        const url = window.location.href;
+        window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
+      }
+
+      shareToTwitter() {
+        const text = "I just answered YES to 'Do you love me?' 💖 This interactive page is pure magic!";
+        const url = window.location.href;
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+      }
+
+      async copyLink() {
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+          const btn = event.target;
+          const originalText = btn.textContent;
+          btn.textContent = '✅ Copied!';
+          btn.style.background = 'rgba(76, 175, 80, 0.3)';
+          
+          setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.background = '';
+          }, 2000);
+          
+          this.playSound(800, 0.1);
+        } catch (err) {
+          console.log('Copy failed, fallback to selection');
+          // Fallback for older browsers
+          const textArea = document.createElement('textarea');
+          textArea.value = window.location.href;
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+        }
+      }
+
+      startParticleSystem() {
+        const particleSystem = document.getElementById('particleSystem');
+        
+        setInterval(() => {
+          if (document.hidden) return; // Don't create particles when tab is hidden
+          
+          const particle = document.createElement('div');
+          particle.className = 'particle';
+          particle.style.left = Math.random() * 100 + 'vw';
+          particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+          particle.style.animationDelay = Math.random() * 2 + 's';
+          
+          // Random particle colors
+          const colors = ['rgba(255, 255, 255, 0.6)', 'rgba(255, 182, 193, 0.8)', 'rgba(173, 216, 230, 0.7)'];
+          particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+          
+          particleSystem.appendChild(particle);
+          
+          // Clean up particles
+          setTimeout(() => {
+            if (particle.parentNode) {
+              particle.parentNode.removeChild(particle);
+            }
+          }, 15000);
+        }, 2000);
+      }
+
+      setupEventListeners() {
+        // Main buttons
+        this.elements.yesBtn.addEventListener('click', () => this.handleYesClick());
+        this.elements.noBtn.addEventListener('click', () => this.handleNoClick());
+        
+        // Control buttons
+        this.elements.themeToggle.addEventListener('click', () => {
+          const newTheme = this.state.theme === 'dark' ? 'light' : 'dark';
+          this.setTheme(newTheme);
+          this.playSound(800, 0.1);
+        });
+        
+        this.elements.volumeToggle.addEventListener('click', () => {
+          this.setSoundEnabled(!this.state.soundEnabled);
+          if (this.state.soundEnabled) this.playSound(600, 0.2);
+        });
+        
+        this.elements.resetBtn.addEventListener('click', () => this.reset());
+        
+        // Share buttons
+        this.elements.shareSection.addEventListener('click', (e) => {
+          if (!e.target.classList.contains('share-btn')) return;
+          
+          const platform = e.target.dataset.platform;
+          switch (platform) {
+            case 'whatsapp':
+              this.shareToWhatsApp();
+              break;
+            case 'twitter':
+              this.shareToTwitter();
+              break;
+            case 'copy':
+              this.copyLink();
+              break;
+          }
+        });
+        
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            if (e.target === this.elements.yesBtn) {
+              e.preventDefault();
+              this.handleYesClick();
+            } else if (e.target === this.elements.noBtn && !this.elements.noBtn.disabled) {
+              e.preventDefault();
+              this.handleNoClick();
+            }
+          } else if (e.key === 'r' && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            this.reset();
+          }
+        });
+        
+        // Performance optimization: Pause animations when tab is hidden
+        document.addEventListener('visibilitychange', () => {
+          if (document.hidden) {
+            document.body.style.animationPlayState = 'paused';
+          } else {
+            document.body.style.animationPlayState = 'running';
+          }
+        });
+        
+        // Touch improvements for mobile
+        ['touchstart', 'touchend', 'touchmove'].forEach(event => {
+          document.addEventListener(event, (e) => {
+            // Improve touch responsiveness
+            if (e.target.classList.contains('btn') || e.target.classList.contains('control-btn')) {
+              e.stopPropagation();
+            }
+          }, { passive: true });
+        });
+      }
+    }
+
+    // CSS for additional animations
+    const additionalStyles = document.createElement('style');
+    additionalStyles.textContent = `
+      @keyframes heartbeat {
+        0% { transform: scale(1); }
+        25% { transform: scale(1.1); }
+        50% { transform: scale(1.2); }
+        75% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+      }
+      
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+      }
+      
+      .btn:focus {
+        outline: 2px solid rgba(255, 255, 255, 0.5);
+        outline-offset: 2px;
+      }
+      
+      .control-btn:focus {
+        outline: 2px solid rgba(255, 255, 255, 0.5);
+        outline-offset: 2px;
+      }
+      
+      @media (max-width: 480px) {
+        .controls {
+          top: 12px;
+        }
+        
+        .controls.left { left: 12px; }
+        .controls.right { right: 12px; }
+        
+        .control-btn {
+          width: 36px;
+          height: 36px;
+          font-size: 16px;
+        }
+        
+        .share-buttons {
+          flex-direction: column;
+          align-items: center;
+        }
+        
+        .share-btn {
+          width: 100%;
+          max-width: 200px;
+        }
+      }
+      
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --primary-gradient: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+        }
+      }
+      
+      /* High contrast mode support */
+      @media (prefers-contrast: high) {
+        .container {
+          border-width: 3px;
+          border-style: solid;
+        }
+        
+        .btn {
+          border-width: 2px;
+          border-style: solid;
+        }
+      }
+      
+      /* Reduced motion support */
+      @media (prefers-reduced-motion: reduce) {
+        .heart, .confetti, .floating-shape, .particle {
+          display: none !important;
+        }
+        
+        * {
+          animation-duration: 0.1s !important;
+          transition-duration: 0.1s !important;
+        }
+      }
+    `;
+    
+    document.head.appendChild(additionalStyles);
+
+    // Initialize the application
+    const app = new LovePageEngine();
+
+    // Service Worker for offline support (optional enhancement)
+    if ('serviceWorker' in navigator) {
+      const swCode = `
+        const CACHE_NAME = 'love-page-v1';
+        const urlsToCache = ['/'];
+        
+        self.addEventListener('install', event => {
+          event.waitUntil(
+            caches.open(CACHE_NAME)
+              .then(cache => cache.addAll(urlsToCache))
+          );
+        });
+        
+        self.addEventListener('fetch', event => {
+          event.respondWith(
+            caches.match(event.request)
+              .then(response => response || fetch(event.request))
+          );
+        });
+      `;
+      
+      const blob = new Blob([swCode], { type: 'application/javascript' });
+      const swUrl = URL.createObjectURL(blob);
+      
+      navigator.serviceWorker.register(swUrl).catch(() => {
+        console.log('Service Worker registration failed');
+      });
+    }
+
+    // Performance monitoring
+    if (window.performance && window.performance.mark) {
+      window.performance.mark('app-initialized');
+    }
+
+    // Error boundary
+    window.addEventListener('error', (e) => {
+      console.error('Application error:', e.error);
+      // Graceful degradation - ensure basic functionality still works
+    });
+
+    // Export for debugging (development only)
+    if (typeof window !== 'undefined') {
+      window.lovePageApp = app;
+    }
+  </script>
+</body>
+</html>
